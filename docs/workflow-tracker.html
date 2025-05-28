@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Workflow Tracker</title>
+<!-- Font Awesome CDN -->
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+  /* Reset & base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 20px;
+    background: #f5f7fa;
+    color: #333;
+  }
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+    text-align: center;
+  }
+
+  /* Container holding all columns */
+  .workflow-container {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* Cards (columns) */
+  .card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 7px rgb(0 0 0 / 0.1);
+    padding: 1rem;
+    flex: 1 1 250px;
+    max-width: 280px;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+  }
+
+  /* Highlight border when dragging over */
+  .card.drag-over {
+    border: 3px dashed #3ba34d;
+  }
+
+  /* Add Opportunity input and button */
+  .add-opportunity {
+    display: flex;
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+  }
+
+  .add-opportunity input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+
+  .add-opportunity button {
+    background: #3ba34d;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .add-opportunity button:hover {
+    background: #329739;
+  }
+
+  /* Opportunities list */
+  .opportunities-list {
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 50px;
+    padding-right: 2px;
+  }
+
+  /* Individual opportunity items */
+  .opportunity {
+    background-color: #3ba34d;
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 0.6rem;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: grab;
+    user-select: none;
+  }
+  .opportunity:active {
+    cursor: grabbing;
+  }
+
+  .opportunity .text {
+    flex: 1;
+    padding-right: 0.5rem;
+    word-break: break-word;
+  }
+
+  .opportunity .actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .opportunity .actions button {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+  }
+  .opportunity .actions button:hover {
+    color: #d1f2d1;
+  }
+
+  /* Editable text input inside opportunity */
+  .opportunity.editing .text {
+    display: none;
+  }
+  .opportunity.editing input.edit-input {
+    flex: 1;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1.5px solid #2c7a2c;
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .workflow-container {
+      flex-direction: column;
+      align-items: center;
+    }
+    .card {
+      max-width: 90vw;
+      min-height: auto;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h1 style="text-align:center; margin-bottom: 25px;">Workflow Tracker</h1>
+
+<div class="workflow-container" id="workflowContainer">
+  <!-- Columns will be injected here -->
+</div>
+
+<script>
+(() => {
+  const columns = [
+    'List of Opportunities',
+    'Waiting For Offer Approval',
+    'Delivery Mode',
+    'Delivery Approval',
+    'Consider it a Service',
+    'Add to Service Catalog'
+  ];
+
+  // Key for localStorage
+  const STORAGE_KEY = 'workflowTrackerData';
+
+  // State: Array of opportunities { id, name, stage }
+  let opportunities = [];
+
+  // DOM refs
+  const workflowContainer = document.getElementById('workflowContainer');
+
+  // Utility to generate unique IDs
+  function generateId() {
+    return 'opp_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // Save state to localStorage
+  function saveState() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(opportunities));
+  }
+
+  // Load state from localStorage
+  function loadState() {
+    const data = localStorage.getItem(STORAGE_KEY);
+    if (data) {
+      try {
+        opportunities = JSON.parse(data);
+      } catch {
+        opportunities = [];
+      }
+    }
+  }
+
+  // Render the entire workflow
+  function render() {
+    workflowContainer.innerHTML = '';
+
+    columns.forEach(stage => {
+      const card = document.createElement('section');
+      card.className = 'card';
+      card.dataset.stage = stage;
+
+      // Title
+      const title = document.createElement('h2');
+      title.textContent = stage;
+      card.appendChild(title);
+
+      // For the first column only: add input and button to add new opportunity
+      if (stage === 'List of Opportunities') {
+        const addWrapper = document.createElement('div');
+        addWrapper.className = 'add-opportunity';
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'New opportunity name';
+        input.id = 'newOpportunityInput';
+        input.autocomplete = 'off';
+
+        const button = document.createElement('button');
+        button.textContent = 'Add Opportunity';
+        button.id = 'addOpportunityBtn';
+
+        addWrapper.appendChild(input);
+        addWrapper.appendChild(button);
+
+        card.appendChild(addWrapper);
+
+        button.addEventListener('click', () => {
+          const val = input.value.trim();
+          if (val) {
+            addOpportunity(val);
+            input.value = '';
+            input.focus();
+          }
+        });
+
+        // Support pressing Enter to add
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            button.click();
+          }
+        });
+      }
+
+      // List container for opportunities in this stage
+      const list = document.createElement('div');
+      list.className = 'opportunities-list';
+      list.dataset.stage = stage;
+      list.addEventListener('dragover', onDragOver);
+      list.addEventListener('dragleave', onDragLeave);
+      list.addEventListener('drop', onDrop);
+
+      // Render opportunities for this stage
+      opportunities
+        .filter(opp => opp.stage === stage)
+        .forEach(opp => {
+          list.appendChild(createOpportunityElement(opp));
+        });
+
+      card.appendChild(list);
+      workflowContainer.appendChild(card);
+    });
+  }
+
+  // Create single opportunity DOM element
+  function createOpportunityElement(opp) {
+    const oppDiv = document.createElement('div');
+    oppDiv.className = 'opportunity';
+    oppDiv.draggable = true;
+    oppDiv.dataset.id = opp.id;
+
+    // Text container
+    const textSpan = document.createElement('span');
+    textSpan.className = 'text';
+    textSpan.textContent = opp.name;
+    oppDiv.appendChild(textSpan);
+
+    // Editable input (hidden by default)
+    const editInput = document.createElement('input');
+    editInput.type = 'text';
+    editInput.className = 'edit-input';
+    editInput.value = opp.name;
+    editInput.style.display = 'none';
+    oppDiv.appendChild(editInput);
+
+    // Actions container
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+
+    // Edit button
+    const editBtn = document.createElement('button');
+    editBtn.title = 'Edit';
+    editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
+    actions.appendChild(editBtn);
+
+    // Delete button
+    const delBtn = document.createElement('button');
+    delBtn.title = 'Delete';
+    delBtn.innerHTML = '<i class="fa fa-trash"></i>';
+    actions.appendChild(delBtn);
+
+    oppDiv.appendChild(actions);
+
+    // Drag events
+    oppDiv.addEventListener('dragstart', onDragStart);
+    oppDiv.addEventListener('dragend', onDragEnd);
+
+    // Edit functionality
+    editBtn.addEventListener('click', () => {
+      if (oppDiv.classList.contains('editing')) {
+        // Save edit
+        const newVal = editInput.value.trim();
+        if (newVal) {
+          opp.name = newVal;
+          saveState();
+          render();
+        } else {
+          alert('Opportunity name cannot be empty.');
+          editInput.focus();
+        }
+      } else {
+        // Enter edit mode
+        oppDiv.classList.add('editing');
+        editInput.style.display = 'inline-block';
+        textSpan.style.display = 'none';
+        editInput.focus();
+        editInput.select();
+        editBtn.innerHTML = '<i class="fa fa-check"></i>';
+      }
+    });
+
+    // Also save edit on Enter key
+    editInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        editBtn.click();
+      } else if (e.key === 'Escape') {
+        // Cancel edit
+        oppDiv.classList.remove('editing');
+        editInput.style.display = 'none';
+        textSpan.style.display = 'inline-block';
+        editInput.value = opp.name;
+        editBtn.innerHTML = '<i class="fa fa-pencil"></i>';
+      }
+    });
+
+    // Delete functionality
+    delBtn.addEventListener('click', () => {
+      if (confirm(`Delete opportunity "${opp.name}"?`)) {
+        opportunities = opportunities.filter(o => o.id !== opp.id);
+        saveState();
+        render();
+      }
+    });
+
+    return oppDiv;
+  }
+
+  // Add new opportunity (always to first stage)
+  function addOpportunity(name) {
+    const newOpp = {
+      id: generateId(),
+      name,
+      stage: columns[0]
+    };
+    opportunities.push(newOpp);
+    saveState();
+    render();
+  }
+
+  // Drag and Drop Handlers
+  let draggedId = null;
+
+  function onDragStart(e) {
+    draggedId = e.target.dataset.id;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', draggedId);
+    // Slight visual effect
+    e.target.style.opacity = '0.5';
+  }
+
+  function onDragEnd(e) {
+    draggedId = null;
+    e.target.style.opacity = '1';
+    // Remove any lingering highlights
+    document.querySelectorAll('.card.drag-over').forEach(card => {
+      card.classList.remove('drag-over');
+    });
+  }
+
+  function onDragOver(e) {
+    e.preventDefault();
+    if (!draggedId) return;
+
+    const card = e.currentTarget.closest('.card');
+    if (card) {
+      card.classList.add('drag-over');
+    }
+    e.dataTransfer.dropEffect = 'move';
+  }
+
+  function onDragLeave(e) {
+    const card = e.currentTarget.closest('.card');
+    if (card) {
+      card.classList.remove('drag-over');
+    }
+  }
+
+  function onDrop(e) {
+    e.preventDefault();
+    const card = e.currentTarget.closest('.card');
+    if (!card || !draggedId) return;
+
+    const newStage = card.dataset.stage;
+    const oppIndex = opportunities.findIndex(o => o.id === draggedId);
+    if (oppIndex >= 0) {
+      opportunities[oppIndex].stage = newStage;
+      saveState();
+      render();
+    }
+    card.classList.remove('drag-over');
+    draggedId = null;
+  }
+
+  // Initialize app
+  function init() {
+    loadState();
+    render();
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>
