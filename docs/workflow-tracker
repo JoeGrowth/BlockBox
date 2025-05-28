@@ -1,378 +1,270 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Workflow Tracker</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f1f1f1;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            flex-wrap: wrap;
-            gap: 40px;
-            padding-top: 50px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Workflow Tracker</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      padding: 50px 20px 20px;
+      background-color: #f1f1f1;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      justify-content: center;
+    }
 
-        .workflow-box {
-            background-color: #fff;
-            border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            width: 280px;
-            text-align: center;
-            min-height: 200px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
+    .workflow-box {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      padding: 30px;
+      width: 280px;
+      min-height: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
 
-        .workflow-box:hover {
-            transform: scale(1.05);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-        }
+    .workflow-box:hover {
+      transform: scale(1.05);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
 
-        .workflow-box h2 {
-            color: #333;
-            font-size: 22px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
+    .workflow-box h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+      color: #333;
+    }
 
-        .input-box, .output-box {
-            margin: 15px 0;
-        }
+    .button {
+      margin-top: 20px;
+      padding: 12px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
 
-        .input-box input, .output-box input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            font-size: 14px;
-            margin-top: 5px;
-        }
+    .button:hover {
+      background-color: #45a049;
+    }
 
-        .button {
-            margin-top: 20px;
-            padding: 12px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+    .opportunity-list-item {
+      background: #eee;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 5px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: move;
+    }
 
-        .button:hover {
-            background-color: #45a049;
-        }
+    .opportunity-list-item:hover {
+      background-color: #d5d5d5;
+    }
 
-        .drag-item {
-            padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            cursor: move;
-            text-align: center;
-            margin-top: 10px;
-            margin-left: 5px;
-            margin-right: 5px;
-        }
+    .opportunity-actions {
+      display: flex;
+      gap: 10px;
+      font-size: 18px;
+    }
 
-        .drag-over {
-            background-color: #f0f0f0;
-            border: 2px dashed #4CAF50;
-        }
+    .opportunity-actions i {
+      cursor: pointer;
+      color: #333;
+      transition: color 0.3s;
+    }
 
-        #opportunities-list {
-            margin-top: 20px;
-        }
+    .opportunity-actions i:hover {
+      color: #4CAF50;
+    }
 
-        .opportunity-list-item {
-            padding: 10px;
-            background-color: #eee;
-            margin: 5px 0;
-            border-radius: 5px;
-            cursor: move;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+    .drag-over {
+      background-color: #f0f0f0;
+      border: 2px dashed #4CAF50;
+    }
 
-        .opportunity-list-item:hover {
-            background-color: #d5d5d5;
-        }
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+        align-items: center;
+      }
 
-        .opportunity-actions {
-            display: flex;
-            gap: 10px;
-            font-size: 18px;
-            color: #333;
-        }
-
-        .opportunity-actions i {
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
-
-        .opportunity-actions i:hover {
-            color: #4CAF50;
-        }
-
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-                align-items: center;
-                padding-top: 20px;
-            }
-
-            .workflow-box {
-                width: 80%;
-                max-width: 500px;
-                margin-bottom: 30px;
-            }
-        }
-    </style>
+      .workflow-box {
+        width: 80%;
+        max-width: 500px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <!-- Part 1: Opportunities -->
-    <div class="workflow-box" id="opportunities-part">
-        <h2>List of Opportunities</h2>
-        <div id="opportunities-list">
-            <!-- Dynamically added opportunities will appear here -->
+  <div class="workflow-box" id="opportunities-part">
+    <h2>List of Opportunities</h2>
+    <div id="opportunities-list"></div>
+    <input type="text" id="new-opportunity" placeholder="Enter new opportunity">
+    <button class="button" onclick="addOpportunity()">Add Opportunity</button>
+  </div>
+
+  <div class="workflow-box" id="offer-approved" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h2>Waiting For Offer Approval</h2>
+    <div id="offer-approved-content"></div>
+  </div>
+
+  <div class="workflow-box" id="meeting-approved" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h2>Delivery Mode</h2>
+    <div id="meeting-approved-content"></div>
+  </div>
+
+  <div class="workflow-box" id="delivery-approved" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h2>Delivery Approval</h2>
+    <div id="delivery-approved-content"></div>
+  </div>
+
+  <div class="workflow-box" id="service-concept" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h2>Consider it a Service</h2>
+    <div id="service-concept-content"></div>
+  </div>
+
+  <div class="workflow-box" id="service-approved" ondrop="drop(event)" ondragover="allowDrop(event)">
+    <h2>Add to Service Catalog</h2>
+    <div id="service-approved-content"></div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      loadOpportunitiesFromLocalStorage();
+      loadStagesFromLocalStorage();
+    };
+
+    function allowDrop(ev) {
+      ev.preventDefault();
+      if (ev.target.classList.contains("workflow-box") || ev.target.classList.contains("workflow-box").firstChild) {
+        ev.target.classList.add("drag-over");
+      }
+    }
+
+    function drag(ev) {
+      ev.dataTransfer.setData("text", ev.target.id);
+    }
+
+    function drop(ev) {
+      ev.preventDefault();
+      const data = ev.dataTransfer.getData("text");
+      const draggedItem = document.getElementById(data);
+      const container = ev.target.querySelector("div[id$='-content']") || ev.target;
+      if (!container.contains(draggedItem)) {
+        container.appendChild(draggedItem);
+        const stageId = container.id;
+        updateOpportunityStageInLocalStorage(data, stageId);
+        saveStagesToLocalStorage();
+      }
+    }
+
+    function addOpportunity() {
+      const input = document.getElementById('new-opportunity');
+      const name = input.value.trim();
+      if (!name) return;
+
+      const id = 'opportunity-' + Date.now();
+      const div = document.createElement('div');
+      div.className = 'opportunity-list-item';
+      div.id = id;
+      div.draggable = true;
+      div.ondragstart = drag;
+      div.innerHTML = `
+        ${name}
+        <div class="opportunity-actions">
+          <i class="fas fa-edit" onclick="editOpportunity(event, '${id}')"></i>
+          <i class="fas fa-trash" onclick="deleteOpportunity(event, '${id}')"></i>
         </div>
-        <input type="text" id="new-opportunity" placeholder="Enter new opportunity">
-        <button class="button" onclick="addOpportunity()">Add Opportunity</button>
-    </div>
+      `;
 
-    <!-- Part 2: Offer Approval -->
-    <div class="workflow-box" id="offer-approved" ondrop="drop(event)" ondragover="allowDrop(event)">
-        <h2>Waiting For Offer Approval</h2>
-        <div id="offer-approved-content">
-            <!-- Dropped opportunities will appear here -->
-        </div>
-    </div>
+      document.getElementById('opportunities-list').appendChild(div);
+      input.value = '';
+      saveOpportunitiesToLocalStorage();
+    }
 
-    <!-- Part 3: 1st Meeting -->
-    <div class="workflow-box" id="meeting-approved" ondrop="drop(event)" ondragover="allowDrop(event)">
-        <h2>Delivery Mode</h2>
-        <div id="meeting-approved-content">
-            <!-- Dropped opportunities will appear here -->
-        </div>
-    </div>
+    function editOpportunity(event, id) {
+      const item = document.getElementById(id);
+      const current = item.firstChild.textContent.trim();
+      const updated = prompt("Edit Opportunity", current);
+      if (updated) {
+        item.firstChild.textContent = updated;
+        saveOpportunitiesToLocalStorage();
+      }
+    }
 
-    <!-- Part 4: Delivery Approved -->
-    <div class="workflow-box" id="delivery-approved" ondrop="drop(event)" ondragover="allowDrop(event)">
-        <h2>Delivery Approval</h2>
-        <div id="delivery-approved-content">
-            <!-- Dropped opportunities will appear here -->
-        </div>
-    </div>
+    function deleteOpportunity(event, id) {
+      document.getElementById(id).remove();
+      saveOpportunitiesToLocalStorage();
+    }
 
-    <!-- Part 5: Service Concept Note -->
-    <div class="workflow-box" id="service-concept" ondrop="drop(event)" ondragover="allowDrop(event)">
-        <h2>Consider it a Service</h2>
-        <div id="service-concept-content">
-            <!-- Dropped opportunities will appear here -->
-        </div>
-    </div>
+    function saveOpportunitiesToLocalStorage() {
+      const data = [];
+      document.querySelectorAll('.opportunity-list-item').forEach(item => {
+        data.push({
+          id: item.id,
+          name: item.firstChild.textContent.trim(),
+          stage: getParentStage(item)
+        });
+      });
+      localStorage.setItem('opportunities', JSON.stringify(data));
+    }
 
-    <!-- Part 6: Service Approved -->
-    <div class="workflow-box" id="service-approved" ondrop="drop(event)" ondragover="allowDrop(event)">
-        <h2>Add to Service Catalog</h2>
-        <div id="service-approved-content">
-            <!-- Dropped opportunities will appear here -->
-        </div>
-    </div>
+    function getParentStage(item) {
+      let parent = item.parentElement;
+      while (parent && parent.id !== 'opportunities-list' && !parent.id.endsWith('-content')) {
+        parent = parent.parentElement;
+      }
+      return parent ? parent.id : 'opportunities-list';
+    }
 
-    <script>
-        // Load the stored opportunities from localStorage
-        window.onload = function() {
-            loadOpportunitiesFromLocalStorage();
-            loadStagesFromLocalStorage();
-        }
+    function loadOpportunitiesFromLocalStorage() {
+      const data = JSON.parse(localStorage.getItem('opportunities')) || [];
+      data.forEach(opp => {
+        const div = document.createElement('div');
+        div.className = 'opportunity-list-item';
+        div.id = opp.id;
+        div.draggable = true;
+        div.ondragstart = drag;
+        div.innerHTML = `
+          ${opp.name}
+          <div class="opportunity-actions">
+            <i class="fas fa-edit" onclick="editOpportunity(event, '${opp.id}')"></i>
+            <i class="fas fa-trash" onclick="deleteOpportunity(event, '${opp.id}')"></i>
+          </div>
+        `;
 
-        // Allow the drag-over effect
-        function allowDrop(ev) {
-            ev.preventDefault();
-            ev.target.classList.add("drag-over");
-        }
+        const container = document.getElementById(opp.stage) || document.getElementById('opportunities-list');
+        container.appendChild(div);
+      });
+    }
 
-        // Handle dragging the opportunity item
-        function drag(ev) {
-            ev.dataTransfer.setData("text", ev.target.id);
-        }
+    function updateOpportunityStageInLocalStorage(id, newStage) {
+      const data = JSON.parse(localStorage.getItem('opportunities')) || [];
+      data.forEach(opp => {
+        if (opp.id === id) opp.stage = newStage;
+      });
+      localStorage.setItem('opportunities', JSON.stringify(data));
+    }
 
-        // Handle dropping the opportunity item to another stage
-        function drop(ev) {
-            ev.preventDefault();
-            var data = ev.dataTransfer.getData("text");
-            var draggedElement = document.getElementById(data);
+    function saveStagesToLocalStorage() {
+      // Optional extra state persistence; already handled by saveOpportunitiesToLocalStorage
+    }
 
-            // If it's dropped onto the target (stage), append it there
-            if (ev.target.classList.contains("workflow-box") && !ev.target.contains(draggedElement)) {
-                ev.target.classList.remove("drag-over");  // Remove the drag-over effect
-                ev.target.appendChild(draggedElement);  // Move the dragged item to the target
-                
-                // Update the stage in the localStorage without deleting
-                const stageId = ev.target.id;
-                const opportunityId = draggedElement.id;
-                updateOpportunityStageInLocalStorage(opportunityId, stageId);
-
-                saveStagesToLocalStorage(); // Save the new state of stages
-            }
-        }
-
-        // Function to update the opportunity stage in localStorage
-        function updateOpportunityStageInLocalStorage(opportunityId, newStage) {
-            const opportunities = JSON.parse(localStorage.getItem('opportunities')) || [];
-
-            // Update the stage of the opportunity
-            opportunities.forEach(opportunity => {
-                if (opportunity.id === opportunityId) {
-                    opportunity.stage = newStage;
-                }
-            });
-
-            // Save the updated opportunities back to localStorage
-            localStorage.setItem('opportunities', JSON.stringify(opportunities));
-        }
-
-        // Function to add a new opportunity to the "Opportunities" part
-        function addOpportunity() {
-            const opportunityInput = document.getElementById('new-opportunity');
-            const opportunityName = opportunityInput.value.trim();
-            if (opportunityName !== "") {
-                const opportunityId = 'opportunity-' + Date.now();
-                const opportunityDiv = document.createElement('div');
-                opportunityDiv.classList.add('opportunity-list-item');
-                opportunityDiv.setAttribute('draggable', true);
-                opportunityDiv.setAttribute('id', opportunityId);
-                opportunityDiv.setAttribute('ondragstart', 'drag(event)');
-                
-                // Opportunity name and action icons
-                opportunityDiv.innerHTML = `
-                    ${opportunityName}
-                    <div class="opportunity-actions">
-                        <i class="fas fa-edit" onclick="editOpportunity(event, '${opportunityId}')"></i>
-                        <i class="fas fa-trash" onclick="deleteOpportunity(event, '${opportunityId}')"></i>
-                    </div>
-                `;
-
-                // Add the new opportunity to the opportunities list
-                document.getElementById('opportunities-list').appendChild(opportunityDiv);
-
-                // Save the opportunity to localStorage
-                saveOpportunitiesToLocalStorage();
-
-                opportunityInput.value = "";  // Clear the input field
-            }
-        }
-
-        // Function to edit an opportunity
-        function editOpportunity(event, opportunityId) {
-            const opportunityItem = document.getElementById(opportunityId);
-            const opportunityText = opportunityItem.firstChild.textContent.trim();
-
-            // Prompt to edit the opportunity name
-            const newOpportunityName = prompt("Edit Opportunity", opportunityText);
-            if (newOpportunityName) {
-                opportunityItem.firstChild.textContent = newOpportunityName;
-                saveOpportunitiesToLocalStorage(); // Save after editing
-            }
-        }
-
-        // Function to delete an opportunity
-        function deleteOpportunity(event, opportunityId) {
-            const opportunityItem = document.getElementById(opportunityId);
-            opportunityItem.remove();
-            saveOpportunitiesToLocalStorage(); // Save after deleting
-        }
-
-        // Save the opportunities to localStorage
-        function saveOpportunitiesToLocalStorage() {
-            const opportunities = [];
-            document.querySelectorAll('#opportunities-list .opportunity-list-item').forEach(item => {
-                opportunities.push({
-                    id: item.id,
-                    name: item.firstChild.textContent.trim(),
-                    stage: 'opportunity' // Initial stage is always "opportunity"
-                });
-            });
-            localStorage.setItem('opportunities', JSON.stringify(opportunities));
-        }
-
-        // Load the opportunities from localStorage
-        function loadOpportunitiesFromLocalStorage() {
-            const opportunities = JSON.parse(localStorage.getItem('opportunities')) || [];
-            opportunities.forEach(opportunity => {
-                const opportunityDiv = document.createElement('div');
-                opportunityDiv.classList.add('opportunity-list-item');
-                opportunityDiv.setAttribute('draggable', true);
-                opportunityDiv.setAttribute('id', opportunity.id);
-                opportunityDiv.setAttribute('ondragstart', 'drag(event)');
-
-                opportunityDiv.innerHTML = `
-                    ${opportunity.name}
-                    <div class="opportunity-actions">
-                        <i class="fas fa-edit" onclick="editOpportunity(event, '${opportunity.id}')"></i>
-                        <i class="fas fa-trash" onclick="deleteOpportunity(event, '${opportunity.id}')"></i>
-                    </div>
-                `;
-                document.getElementById('opportunities-list').appendChild(opportunityDiv);
-            });
-        }
-
-        // Save stages to localStorage
-        function saveStagesToLocalStorage() {
-            const stages = {
-                'offer-approved': [],
-                'meeting-approved': [],
-                'delivery-approved': [],
-                'service-concept': [],
-                'service-approved': []
-            };
-
-            document.querySelectorAll('.workflow-box').forEach(box => {
-                const boxId = box.id;
-                if (boxId !== 'opportunities-part') {
-                    const items = [];
-                    box.querySelectorAll('.opportunity-list-item').forEach(item => {
-                        items.push(item.id);
-                    });
-                    stages[boxId] = items;
-                }
-            });
-
-            localStorage.setItem('stages', JSON.stringify(stages));
-        }
-
-        // Load stages from localStorage
-        function loadStagesFromLocalStorage() {
-            const stages = JSON.parse(localStorage.getItem('stages')) || {};
-
-            Object.keys(stages).forEach(stage => {
-                const stageBox = document.getElementById(stage);
-                const stageItems = stages[stage];
-                stageItems.forEach(itemId => {
-                    const item = document.getElementById(itemId);
-                    if (item) {
-                        stageBox.appendChild(item); // Move the opportunity to the stage
-                    }
-                });
-            });
-        }
-    </script>
-
+    function loadStagesFromLocalStorage() {
+      // Merged into loadOpportunitiesFromLocalStorage
+    }
+  </script>
 </body>
 </html>
